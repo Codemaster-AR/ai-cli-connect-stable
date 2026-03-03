@@ -33,7 +33,7 @@ export async function onRequest(context) {
       },
       body: JSON.stringify({
         ...body,
-        model: "qwen/qwen3-coder-480b-a35b:free"
+        model: "qwen-3-coder-480b-a35b"
       })
     });
 
