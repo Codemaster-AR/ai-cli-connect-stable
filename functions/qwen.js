@@ -24,7 +24,7 @@ export async function onRequest(context) {
     const body = await request.json();
 
     // --- Use model from request, fallback to default ---
-    const modelId = body.model || "qwen3-coder-plus"; // default model
+    const modelId = body.model || "qwen/qwen3-coder-flash"; // default model
 
     const payload = {
       model: modelId,
