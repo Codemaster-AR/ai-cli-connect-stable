@@ -1,4 +1,9 @@
-export async function onRequestPost(context) {
+// /functions/qwen.js
+export async function onRequest(context) {
+  if (context.request.method !== "POST") {
+    return new Response(JSON.stringify({ error: "Method not allowed" }), { status: 405 });
+  }
+
   try {
     const body = await context.request.json();
 
@@ -7,7 +12,7 @@ export async function onRequestPost(context) {
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${context.env.QWEN_DEV_KEY}`,
-        "HTTP-Referer": "https://ai-cli-connect-stable.pages.dev",
+        "Referer": "https://ai-cli-connect-stable.pages.dev",
         "X-Title": "AI CLI"
       },
       body: JSON.stringify({
