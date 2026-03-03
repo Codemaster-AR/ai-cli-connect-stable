@@ -1,5 +1,6 @@
-// Handle POST requests (your current code)
 export async function onRequestPost(context) {
+  console.log("Groq function v7"); // Version print
+
   try {
     const { request, env } = context;
 
@@ -14,8 +15,23 @@ export async function onRequestPost(context) {
       );
     }
 
-    // Dynamic model selection
+    // Allowed models for safety
+    const allowedModels = [
+      "llama-3.3-70b-versatile",
+      "llama-3.1-405b-reasoning",
+      "meta-llama/llama-4-scout-17b-16e-instruct",
+      "qwen/qwen3-coder-flash",
+      "qwen/qwen3-coder-plus"
+    ];
+
+    // Dynamic model selection with validation
     const model = body.model || "llama-3.3-70b-versatile";
+    if (!allowedModels.includes(model)) {
+      return new Response(
+        JSON.stringify({ error: `Invalid model. Allowed: ${allowedModels.join(", ")}` }),
+        { status: 400 }
+      );
+    }
 
     // Support both `prompt` and `messages`
     const messages = body.messages
@@ -56,9 +72,7 @@ export async function onRequestPost(context) {
 
     return new Response(text, {
       status: groqResponse.status,
-      headers: {
-        "Content-Type": "application/json"
-      }
+      headers: { "Content-Type": "application/json" }
     });
 
   } catch (error) {
@@ -70,16 +84,4 @@ export async function onRequestPost(context) {
       { status: 500 }
     );
   }
-}
-
-// --- ADD THIS ---
-// Handle GET requests so browser / curl without POST doesn't 404
-export async function onRequestGet() {
-  return new Response(
-    JSON.stringify({ message: "Groq function is alive! Use POST to send prompts." }),
-    {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    }
-  );
 }
