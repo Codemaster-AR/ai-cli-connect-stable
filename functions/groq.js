@@ -1,33 +1,41 @@
-// /functions/groq.js
-
-export async function onRequest(context) {
-  const { request, env } = context;
-
-  if (request.method !== "POST") {
-    return new Response(JSON.stringify({ error: "Method not allowed" }), {
-      status: 405,
-      headers: { "Content-Type": "application/json" }
-    });
-  }
-
+export async function onRequestPost(context) {
   try {
-    const body = await request.json();
+    const { request, env } = context;
 
-    // 🔥 Dynamic model selection
-    const modelId = body.model || "llama-3.3-70b-versatile";
+    // Parse body safely
+    let body;
+    try {
+      body = await request.json();
+    } catch {
+      return new Response(
+        JSON.stringify({ error: "Invalid JSON body" }),
+        { status: 400 }
+      );
+    }
 
-    const payload = {
-      model: modelId,
-      messages: body.messages || [
-        { role: "user", content: body.prompt || "" }
-      ],
-      tools: body.tools || undefined,
-      tool_choice: body.tool_choice || "auto",
-      temperature: body.temperature ?? 0.0,
-      max_tokens: body.max_tokens ?? 1024
-    };
+    // Dynamic model selection
+    const model = body.model || "llama-3.3-70b-versatile";
 
-    const response = await fetch(
+    // Support both `prompt` and `messages`
+    const messages = body.messages
+      ? body.messages
+      : [
+          {
+            role: "user",
+            content: body.prompt || "Hello"
+          }
+        ];
+
+    // Ensure API key exists
+    if (!env.GROQ_API_KEY) {
+      return new Response(
+        JSON.stringify({ error: "GROQ_API_KEY not configured" }),
+        { status: 500 }
+      );
+    }
+
+    // Call Groq OpenAI-compatible endpoint
+    const groqResponse = await fetch(
       "https://api.groq.com/openai/v1/chat/completions",
       {
         method: "POST",
@@ -35,24 +43,30 @@ export async function onRequest(context) {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${env.GROQ_API_KEY}`
         },
-        body: JSON.stringify(payload)
+        body: JSON.stringify({
+          model,
+          messages
+        })
       }
     );
 
-    const data = await response.json();
+    // Return raw upstream response (prevents JS parsing crashes)
+    const text = await groqResponse.text();
 
-    return new Response(JSON.stringify(data), {
-      status: response.status,
-      headers: { "Content-Type": "application/json" }
+    return new Response(text, {
+      status: groqResponse.status,
+      headers: {
+        "Content-Type": "application/json"
+      }
     });
 
-  } catch (err) {
-    return new Response(JSON.stringify({
-      error: "Groq proxy error",
-      details: err.message
-    }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" }
-    });
+  } catch (error) {
+    return new Response(
+      JSON.stringify({
+        error: "Internal server error",
+        details: error.message
+      }),
+      { status: 500 }
+    );
   }
 }
