@@ -1,17 +1,33 @@
 // /functions/qwen.js
 export async function onRequest(context) {
-  if (context.request.method !== "POST") {
-    return new Response(JSON.stringify({ error: "Method not allowed" }), { status: 405 });
+  const { request, env } = context;
+
+  // --- Handle GET requests (for quick browser testing) ---
+  if (request.method === "GET") {
+    return new Response(JSON.stringify({
+      message: "Qwen function is alive! Use POST to send prompts."
+    }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" }
+    });
+  }
+
+  // --- Only allow POST for actual AI requests ---
+  if (request.method !== "POST") {
+    return new Response(JSON.stringify({ error: "Method not allowed" }), {
+      status: 405,
+      headers: { "Content-Type": "application/json" }
+    });
   }
 
   try {
-    const body = await context.request.json();
+    const body = await request.json();
 
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${context.env.QWEN_DEV_KEY}`,
+        "Authorization": `Bearer ${env.QWEN_DEV_KEY}`,
         "Referer": "https://ai-cli-connect-stable.pages.dev",
         "X-Title": "AI CLI"
       },
