@@ -1,3 +1,4 @@
+// Handle POST requests (your current code)
 export async function onRequestPost(context) {
   try {
     const { request, env } = context;
@@ -50,7 +51,7 @@ export async function onRequestPost(context) {
       }
     );
 
-    // Return raw upstream response (prevents JS parsing crashes)
+    // Return raw upstream response
     const text = await groqResponse.text();
 
     return new Response(text, {
@@ -69,4 +70,16 @@ export async function onRequestPost(context) {
       { status: 500 }
     );
   }
+}
+
+// --- ADD THIS ---
+// Handle GET requests so browser / curl without POST doesn't 404
+export async function onRequestGet() {
+  return new Response(
+    JSON.stringify({ message: "Groq function is alive! Use POST to send prompts." }),
+    {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    }
+  );
 }
