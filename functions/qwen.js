@@ -2,7 +2,7 @@
 export async function onRequest(context) {
   const { request, env } = context;
 
-  // --- Handle GET requests (for quick browser testing) ---
+  // --- Handle GET requests (quick test) ---
   if (request.method === "GET") {
     return new Response(JSON.stringify({
       message: "Qwen function is alive! Use POST to send prompts."
@@ -23,6 +23,16 @@ export async function onRequest(context) {
   try {
     const body = await request.json();
 
+    // --- Use model from request, fallback to default ---
+    const modelId = body.model || "qwen3-coder-plus"; // default model
+
+    const payload = {
+      model: modelId,
+      messages: body.messages || [{ role: "user", content: body.prompt || "" }],
+      temperature: body.temperature ?? 0.5,
+      max_tokens: body.max_tokens ?? 200
+    };
+
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -31,10 +41,7 @@ export async function onRequest(context) {
         "Referer": "https://ai-cli-connect-stable.pages.dev",
         "X-Title": "AI CLI"
       },
-      body: JSON.stringify({
-        ...body,
-        model: "qwen-3-coder-480b-a35b"
-      })
+      body: JSON.stringify(payload)
     });
 
     const data = await response.json();
