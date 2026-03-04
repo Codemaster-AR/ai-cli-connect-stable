@@ -8,3 +8,4 @@ API connection endpoint
 Mistral: [https://ai-cli-connect-stable.pages.dev/api](https://ai-cli-connect-stable.pages.dev/api)
 Groq: [https://ai-cli-connect-stable.pages.dev/groq](https://ai-cli-connect-stable.pages.dev/groq)
 Qwen: [https://ai-cli-connect-stable.pages.dev/qwen](https://ai-cli-connect-stable.pages.dev/qwen)
+
