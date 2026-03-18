@@ -10,10 +10,10 @@ export async function onRequest(context) {
   if (request.method === "POST") {
     try {
       const { prompt } = await request.json();
-      const apiKey = env.AURORA_BIOSCIENCE_API;
+      const apiKey = env.BACKUP_AURORA_BIOSCIENCE_API;
 
       if (!apiKey) {
-        return new Response("Error: Missing AURORA_BIOSCIENCE_API", { status: 500 });
+        return new Response("Error: Missing BACKUP_AURORA_BIOSCIENCE_API", { status: 500 });
       }
 
       // 1. Updated Endpoint for 2.5 Flash
